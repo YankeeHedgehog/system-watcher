@@ -3,8 +3,9 @@ import { Button, TextField } from '@mui/material'
 // pages/index.js
 import { ChangeEvent, useEffect, useState } from 'react'
 import io from 'socket.io-client'
+import useFolderWatch from '../features/file-wathcer/useFolderWatch'
 
-const Home = () => {
+export default function SocketFrontPage() {
   const [folderNameToWatch, setForlderNameToWatch] = useState('')
   const handleChangeText = (e: ChangeEvent<HTMLInputElement>) => {
     setForlderNameToWatch(e.target.value)
@@ -16,23 +17,7 @@ const Home = () => {
     socket.emit('change-watch-folder', folderNameToWatch)
   }
 
-  const [messages, setMessages] = useState<any>([])
-  let socket: any
-
-  useEffect(() => {
-    // Socket.IOクライアントを初期化
-    socket = io()
-
-    // サーバーからのメッセージを受け取る
-    socket.on('file-changed', (data: any) => {
-      setMessages((prevMessages: any) => [...prevMessages, data])
-    })
-
-    // クリーンアップ
-    return () => {
-      if (socket) socket.disconnect()
-    }
-  }, [folderNameToWatch])
+  const [messages, _] = useFolderWatch(folderNameToWatch)
 
   return (
     <div>
@@ -56,5 +41,3 @@ const Home = () => {
     </div>
   )
 }
-
-export default Home

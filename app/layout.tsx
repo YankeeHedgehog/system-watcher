@@ -1,11 +1,9 @@
-import './globals.css'
 import { Inter } from 'next/font/google'
 
 export const metadata = {
   metadataBase: new URL('https://postgres-prisma.vercel.app'),
-  title: 'Vercel Postgres Demo with Prisma',
-  description:
-    'A simple Next.js app with Vercel Postgres as the database and Prisma as the ORM',
+  title: 'システムのdbや、ファイル変更を監視するためのアプリケーションです',
+  description: 'システム監視アプリケーション',
 }
 
 const inter = Inter({
@@ -20,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body className={inter.variable}>{children}</body>
     </html>
   )

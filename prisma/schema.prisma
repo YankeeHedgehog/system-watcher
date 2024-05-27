@@ -8,10 +8,16 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-model users {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  image     String
-  createdAt DateTime @default(now())
+model User {
+  id String @id @default(cuid())
+  name String
+  email String
+  // password String
+  ciel_url String?
+  aegis_url String?
+  patio_url String?
+}
+
+model Ciel {
+  id       String    @id @default(cuid())
 }
