@@ -8,16 +8,124 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-model User {
-  id String @id @default(cuid())
-  name String
-  email String
-  // password String
-  ciel_url String?
-  aegis_url String?
-  patio_url String?
+model LocalGoverment {
+  id    String @id @default(cuid())
+  code  String
+  name  String
+  users User[]
 }
 
-model Ciel {
-  id       String    @id @default(cuid())
+model User {
+  id                 String         @id @default(cuid())
+  name               String         @unique
+  local_goverment_id String
+  maps               Map[]
+  roles              Role[]
+  local_goverment    LocalGoverment @relation(fields: [local_goverment_id], references: [id])
+}
+
+model Role {
+  id      String @id @default(cuid())
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
+}
+
+model Map {
+  id                   String            @id @default(cuid())
+  projection           String
+  initial_position_x   Float
+  initial_position_y   Float
+  lefttop_x            Float
+  lefttop_y            Float
+  foreground_layers_id String
+  matrix_def_id        String
+  user_id              String
+  scale_id             String
+  background_layers    BackgroundLayer[]
+  extent               Extent?
+  layers               ForegroundLayers?
+  scale                Scale             @relation(fields: [scale_id], references: [id])
+  user                 User              @relation(fields: [user_id], references: [id])
+}
+
+model Extent {
+  id     String @id @default(cuid())
+  a      String
+  b      String
+  c      String
+  d      String
+  map_id String @unique
+  map    Map    @relation(fields: [map_id], references: [id])
+}
+
+model Scale {
+  id           String       @id @default(cuid())
+  map          Map[]
+  scale_values ScaleValue[]
+}
+
+model ScaleValue {
+  id       String @id @default(cuid())
+  scale_id String
+  value    String
+  scale    Scale  @relation(fields: [scale_id], references: [id])
+}
+
+model ForegroundLayers {
+  id           String   @id @default(cuid())
+  title        String
+  session_url  String
+  swd_filepath String
+  map_id       String   @unique
+  group        Map      @relation(fields: [map_id], references: [id])
+  searchs      Search[]
+}
+
+model BackgroundLayer {
+  id       String  @id @default(cuid())
+  title    String
+  name     String
+  wmts_url String
+  visible  Boolean
+  map_id   String
+  map      Map     @relation(fields: [map_id], references: [id])
+}
+
+model Search {
+  id                   String           @id @default(cuid())
+  label                String
+  target_layer_name    String
+  is_move_only         Boolean
+  foreground_layers_id String
+  foreground_layers    ForegroundLayers @relation(fields: [foreground_layers_id], references: [id])
+  search_options       SearchOption[]
+}
+
+model SearchOption {
+  id        String     @id @default(cuid())
+  label     String
+  search_id String
+  attribute Attribute?
+  search    Search     @relation(fields: [search_id], references: [id])
+}
+
+model Attribute {
+  id                String            @id @default(cuid())
+  property          String
+  name              String
+  search_option_id  String            @unique
+  search_option     SearchOption      @relation(fields: [search_option_id], references: [id])
+  attribute_options AttributeOption[]
+}
+
+model AttributeOption {
+  id                  String            @id @default(cuid())
+  name                String
+  attribute_id        String
+  attribute_option_id String?
+  attribute           Attribute         @relation(fields: [attribute_id], references: [id])
+  parent              AttributeOption?  @relation("AttributeToParent", fields: [attribute_option_id], references: [id])
+  children            AttributeOption[] @relation("AttributeToParent")
+
+  @@index([attribute_option_id])
 }
