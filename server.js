@@ -3,6 +3,7 @@ const next = require('next')
 const { Server } = require('socket.io')
 
 const fs = require('fs')
+var chokidar = require('chokidar')
 const path = require('path')
 
 const dev = process.env.NODE_ENV !== 'production'
@@ -21,12 +22,28 @@ function startWatching(folderPath, io) {
   if (watcher) {
     watcher.close()
   }
-  watcher = fs.watch(folderPath, { recursive: true }, (eventType, filename) => {
-    if (filename) {
-      console.log(`ファイルが変更されました: ${filename}`)
-      io.emit('file-changed', { eventType, filename })
-    }
+  watcher = chokidar.watch(folderPath, {
+    persistent: true,
+    ignoreInitial: true,
+    depth: 99, // サブフォルダーも監視
   })
+
+  watcher
+    .on('add', (path) => {
+      console.log(`ファイルが追加されました: ${path}`)
+      io.emit('file-changed', { eventType: 'add', filename: path })
+    })
+    .on('change', (path) => {
+      console.log(`ファイルが変更されました: ${path}`)
+      io.emit('file-changed', { eventType: 'change', filename: path })
+    })
+    .on('unlink', (path) => {
+      console.log(`ファイルが削除されました: ${path}`)
+      io.emit('file-changed', { eventType: 'unlink', filename: path })
+    })
+    .on('error', (error) => {
+      console.error(`監視中にエラーが発生しました: ${error}`)
+    })
 }
 
 app.prepare().then(() => {
