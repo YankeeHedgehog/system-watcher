@@ -55,3 +55,32 @@ pnpm dev
 ```
 
 Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples) ([Documentation](https://nextjs.org/docs/deployment)).
+
+## 監視用のレプリケーションスロットの作成
+
+SELECT \* FROM pg_create_logical_replication_slot('my_slot', 'test_decoding');
+スロットを一覧表示して確認
+SELECT slot_name FROM pg_replication_slots;
+
+## そのほか使ったコマンドまとめ
+
+使ったコマンドまとめ
+
+Docker
+docker logs [container_name]
+コンテナ名を指定して、log を確認するコマンド
+Postgres の起動を確認するために使った
+
+docker network inspect [bridge | host | …]
+docker のネットワークについて調べるコマンド
+
+docker compose —env-file [../your_path/.env] up -d
+docker compose のオプション .env ファイルを参照できる
+${xxx}で対象のファイル変数を参照する
+
+docker ps -a
+起動していない docker container を確認するコマンド
+
+Port
+lsof -h [port]
+指定したポート番号を使っているプロトコルを確認する

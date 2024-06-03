@@ -1,9 +1,8 @@
 const { createServer } = require('http')
 const next = require('next')
 const { Server } = require('socket.io')
-
-const fs = require('fs')
-var chokidar = require('chokidar')
+const { Client } = require('pg')
+const chokidar = require('chokidar')
 const path = require('path')
 
 const dev = process.env.NODE_ENV !== 'production'
@@ -46,6 +45,49 @@ function startWatching(folderPath, io) {
     })
 }
 
+// PostgreSQLのクライアント設定
+const client = new Client({
+  // user: process.env.POSTGRES_USER,
+  // host: process.env.POSTGRES_HOST,
+  // database: process.env.POSTGRE_DATABASE,
+  // password: process.env.POSTGRES_PASSWORD,
+  // port: 5432,
+  user: 'ciro',
+  host: 'localhost',
+  database: 'system-watch-db',
+
+  password: 'ciro0022',
+  port: 5433,
+})
+
+client.on('error', (err) => {
+  console.error('PostgreSQL client error:', err)
+  if (err.code === 'ECONNRESET') {
+    // 再接続ロジックを追加
+    setTimeout(() => {
+      client.connect().catch((err) => console.error('Error reconnecting:', err))
+    }, 5000) // 5秒後に再接続を試みる
+  }
+})
+
+client
+  .connect()
+  .catch((err) => console.error('Error connecting to PostgreSQL:', err))
+
+// PostgreSQLの変更を監視
+const fetchChanges = async (io) => {
+  try {
+    const res = await client.query(
+      "SELECT data FROM pg_logical_slot_get_changes('my_slot', NULL, NULL, 'include-xids', '0')"
+    )
+    res.rows.forEach((row) => {
+      io.emit('db-changed', row.data)
+    })
+  } catch (err) {
+    console.error('Error fetching changes:', err)
+  }
+}
+
 app.prepare().then(() => {
   const httpServer = createServer(handler)
   const io = new Server(httpServer)
@@ -53,15 +95,29 @@ app.prepare().then(() => {
   io.on('connection', (socket) => {
     console.log('クライアントが接続しました')
 
+    // WebSocketのエラー処理を追加
+    socket.on('error', (err) => {
+      console.error('WebSocket error:', err)
+    })
+
     // 新しいフォルダーパスを受信
     socket.on('change-watch-folder', (newFolderPath) => {
       console.log(`新しいフォルダーパス: ${newFolderPath}`)
       watchFolder = newFolderPath
       startWatching(watchFolder, io)
     })
+
+    // クライアント切断時の処理
+    socket.on('disconnect', () => {
+      console.log('クライアントが切断しました')
+    })
   })
 
+  // 初期監視開始
   startWatching(watchFolder, io)
+
+  // 定期的に変更をチェック
+  setInterval(() => fetchChanges(io), 1000)
 
   httpServer
     .once('error', (err) => {

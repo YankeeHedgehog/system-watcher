@@ -1,24 +1,19 @@
 version: '3.8'
-
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres
+    container_name: postgres-database
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: db
-    ports:
-      - '5422:5422'
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    restart: always
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    command:
-      [
-        'postgres',
-        '-c',
-        'wal_level=logical',
-        '-c',
-        'max_replication_slots=4',
-        '-c',
-        'max_wal_senders=4',
-      ]
+      - db_store:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - '5432:5432'
+    command: ['postgres', '-c', 'config_file=/etc/postgresql/postgresql.conf']
+
+volumes:
+  db_store:

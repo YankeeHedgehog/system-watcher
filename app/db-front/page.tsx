@@ -1,35 +1,53 @@
+'use client'
 import { useEffect, useState } from 'react'
+import io from 'socket.io-client'
 
 export default function Home() {
-  const [messages, setMessages] = useState([])
+  const [fileChanges, setFileChanges] = useState([])
+  const [dbChanges, setDbChanges] = useState([])
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:3000/api/changes')
+    const socket = io('http://localhost:3000') // Socket.ioクライアントを使用
 
-    ws.onmessage = (event) => {
-      const newMessage = event.data
-      setMessages((prevMessages) => [...prevMessages, newMessage])
-    }
-
-    ws.onopen = () => {
+    socket.on('connect', () => {
       console.log('WebSocket connection opened')
-    }
+    })
 
-    ws.onclose = () => {
+    socket.on('file-changed', (data) => {
+      setFileChanges((prevChanges) => [...prevChanges, data])
+    })
+
+    socket.on('db-changed', (data) => {
+      setDbChanges((prevChanges) => [...prevChanges, data])
+    })
+
+    socket.on('error', (error) => {
+      console.error('WebSocket error:', error)
+    })
+
+    socket.on('disconnect', () => {
       console.log('WebSocket connection closed')
-    }
+      // 再接続はSocket.ioが自動的に処理する
+    })
 
     return () => {
-      ws.close()
+      socket.close()
     }
   }, [])
 
   return (
     <div>
+      <h1>File Changes</h1>
+      <ul>
+        {fileChanges.map((change, index) => (
+          <li key={index}>{`${change.eventType}: ${change.filename}`}</li>
+        ))}
+      </ul>
+
       <h1>Database Changes</h1>
       <ul>
-        {messages.map((msg, index) => (
-          <li key={index}>{msg}</li>
+        {dbChanges.map((change, index) => (
+          <li key={index}>{change}</li>
         ))}
       </ul>
     </div>
