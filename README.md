@@ -78,6 +78,15 @@ docker compose —env-file [../your_path/.env] up -d
 docker compose のオプション .env ファイルを参照できる
 ${xxx}で対象のファイル変数を参照する
 
+```
+docker exec -it postgres-db bash -c "echo 'wal_level = logical' >> /var/lib/postgresql/data/postgresql.conf"
+docker exec -it postgres-db bash -c "echo 'max_replication_slots = 4' >> /var/lib/postgresql/data/postgresql.conf"
+docker exec -it postgres-db bash -c "echo 'max_wal_senders = 4' >> /var/lib/postgresql/data/postgresql.conf"
+docker restart postgres-db
+```
+
+postgreSQL への変更まとめ
+
 docker ps -a
 起動していない docker container を確認するコマンド
 
