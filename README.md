@@ -75,6 +75,8 @@ docker network inspect [bridge | host | …]
 docker のネットワークについて調べるコマンド
 
 docker compose —env-file [../your_path/.env] up -d
+docker compose —env-file ../.env up -d
+docker compose —env-file ../.env down
 docker compose のオプション .env ファイルを参照できる
 ${xxx}で対象のファイル変数を参照する
 
@@ -93,3 +95,7 @@ docker ps -a
 Port
 lsof -h [port]
 指定したポート番号を使っているプロトコルを確認する
+
+## Vite Express.js
+
+https://scrapbox.io/dojineko/Vite%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6Express.js%E3%82%A2%E3%83%97%E3%83%AA%E3%82%92%E4%BD%9C%E3%82%8B
