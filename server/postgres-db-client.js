@@ -25,7 +25,7 @@ client
 const fetchChanges = async (io) => {
   try {
     const res = await client.query(
-      "SELECT data FROM pg_logical_slot_get_changes('my_slot', NULL, NULL, 'include-xids', '0')"
+      "SELECT data FROM pg_logical_slot_get_changes('my_slot', NULL, NULL)"
     )
     res.rows.forEach((row) => {
       io.emit('db-changed', row.data)
